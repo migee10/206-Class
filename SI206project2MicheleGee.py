@@ -2,7 +2,8 @@
 
 ## COMMENT HERE WITH:
 ## Your name: Michele Gee
-## Anyone you worked with on this project:
+## Anyone you worked with on this project: Kyle
+
 
 ## Below we have provided import statements, comments to separate out the
 #parts of the project, instructions/hints/examples, and at the end, TESTS.
@@ -26,7 +27,7 @@ from bs4 import BeautifulSoup
 ## find_urls("the internet is awesome #worldwideweb") should return [], empty list
 
 def find_urls(s):
-    url = re.findall('http\S*\.[a-z]+\S', s)
+    url = re.findall('http\S*\.[a-z]+\S', s)        #getting rid of white space, looking for characters a-z
     return url
 
 
@@ -43,7 +44,7 @@ def grab_headlines():
     # f.close()
 
     #Opening from Michigan Daily
-    r = requests.get('http://www.michigandaily.com/section/opinion')
+    r = requests.get('http://www.michigandaily.com/section/opinion')    #pulling data from the Michigan daily website
     soup = BeautifulSoup(r.text, 'html.parser')
     most_read = []
     s = ""
