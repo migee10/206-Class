@@ -66,31 +66,31 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 cache_fname = "twitter_results.json"
 
 try:
-	cache_file = open("cache_fname", 'r') #read data from file
-	cache_contents = cache_file.read() #if data is there put it into a string
-	cache_diction = json.loads(cache_contents) #put into dictionary
-	cache_file.close() #close
+	Cache_file = open("cache_fname", 'r') #read data from file
+	Cache_contents = Cache_file.read() #if data is there put it into a string
+	Cache_diction = json.loads(Cache_contents) #put into dictionary
+	Cache_file.close() #close
 except:
-	cache_diction = {}
+	Cache_diction = {}
 
 
 ## 2. Write a function to get twitter data that works with the caching pattern,
 ## 		so it either gets new data or caches data, depending upon what the input
 ##		to search for is.
 def get_tweet(search_term):
-    if search_term in cache_diction: #looks for term in cached file
+    if search_term in Cache_diction: #looks for term in cached file
         print("using cache") #If term has been cached, the data will return that
-        return cache_diction[search_term]
+        return Cache_diction[search_term]
     else:
         print("fetching") #If not, it pulls from Twitter
         results = api.search(search_term)
         try:
-            cache_diction[search_term] = json.dumps(results)
-            dumped_json_cache = json.dumps(cache_diction)
+            Cache_diction[search_term] = json.dumps(results)
+            dumped_json_cache = json.dumps(Cache_diction)
             fw = open(cache_fname, 'w')
             fw.write(dumped_json_cache)
             fw.close()
-            return cache_diction[search_term]
+            return Cache_diction[search_term]
         except:
             print("Wasn't in cache and wasn't in search either") #If there was nothing in cached or twitter
             return None
