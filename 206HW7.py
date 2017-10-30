@@ -63,7 +63,7 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 #### Recommended order of tasks: ####
 ## 1. Set up the caching pattern start -- the dictionary and the try/except
 ## 		statement shown in class.
-cache_fname = "twitter_results.json"
+cache_fname = "tweepcache.json"
 
 try:
 	Cache_file = open("cache_fname", 'r') #read data from file
