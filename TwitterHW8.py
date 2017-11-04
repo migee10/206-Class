@@ -21,9 +21,9 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 CACHE_FNAME = "twitter_cache.json"
 try:
     cache_file = open(CACHE_FNAME,'r')
-        cache_contents = cache_file.read()
-        cache_file.close()
-        CACHE_DICTION = json.loads(cache_contents)
+    cache_contents = cache_file.read()
+    cache_file.close()
+    CACHE_DICTION = json.loads(cache_contents)
 except:
     CACHE_DICTION = {}
 
@@ -31,50 +31,23 @@ except:
 
 # Here, define a function called get_tweets that searches for all tweets referring to or by "umsi"
 # Your function must cache data it retrieves and rely on a cache file!
+def get_tweets():
+    if CACHE_DICTION == {}:
+        tweets = api.home_timeline()
+        for tweet in tweets:
+            words = tweet['text'].split(' ')
+            if 'umsi' in words or 'UMSI' in words:
+                CACHE_DICTION[tweet['id']] = [tweet['user']['screen_name'], tweet['created_at'], tweet['text'], tweet['retweet_count']]
+        umsi_tweets = api.user_timeline('umsi')
+        for tweet in umsi_tweets:
+            CACHE_DICTION[tweet['id']] = [tweet['user']['screen_name'], tweet['created_at'], tweet['text'], tweet['retweet_count']]
+        file = open(CACHE_FNAME, "w")
+        file.write(json.dumps(CACHE_DICTION))  # write cache dictionary to file
+        file.close()
+        return CACHE_DICTION
+    else:
+        return CACHE_DICTION
 
-
-def get_tweets(user_handle):
-##YOUR CODE HERE
-	unique_identifier = "twitter_{}".format(user_handle)
-	if unique_identifier in CACHE_DICTION:
-		print("Using cached data for", user_handle)
-		pass
-	else:
-		print("Getting new data from web for", user_handle)
-		tweets_results = api.user_timeline(id = user_handle)
-		CACHE_DICTION[unique_identifier] = tweets_results
-		fileref = open(CACHE_FNAME, 'w')
-		fileref.write(json.dumps(CACHE_DICTION))
-		fileref.close()
-	return CACHE_DICTION[unique_identifier]
-
-
-
-db_conn = sqlite3.connect("tweets.db")
-db_cur = db_conn.cursor()
-
-
-db_cur.execute("DROP TABLE IF EXISTS Tweets")
-db_cur.execute("CREATE TABLE Tweets (id INTEGER PRIMARY KEY, tweet_id INTEGER, author TEXT, time_posted TIMESTAMP, tweet_text TEXT, retweets INTEGER)")
-
-
-
-umsi_tweets = get_user_tweets("umsi")
-
-
-insert_data = "INSERT INTO Tweets Values (?,?,?,?,?,?)"
-for i in range(len(umsi_tweets)):
-	tweet_id = umsi_tweets[i]["user"]["id"]
-	author = umsi_tweets[i]["user"]["screen_name"]
-	time_posted = umsi_tweets[i]["created_at"]
-	tweet_text = umsi_tweets[i]["text"]
-	retweets = umsi_tweets[i]["retweet_count"]
-	db_cur.execute(insert_data, (None, tweet_id, author, time_posted, tweet_text, retweets))
-
-
-
-
-db_conn.commit()
 
 ## [PART 2]
 # Create a database: tweets.sqlite,
@@ -88,35 +61,23 @@ db_conn.commit()
 # Below we have provided interim outline suggestions for what to do, sequentially, in comments.
 
 # 1 - Make a connection to a new database tweets.sqlite, and create a variable to hold the database cursor.
-
-q1 = "SELECT time_posted FROM Tweets"
-db_cur.execute(q1)
-tweet_posted_times = db_cur.fetchall()
-print(tweet_posted_times)
+""" create a database connection to a SQLite database """
+conn = sqlite3.connect('tweets.sqlite')
+cur = conn.cursor()
 
 # 2 - Write code to drop the Tweets table if it exists, and create the table (so you can run the program over and over), with the correct (4) column names and appropriate types for each.
 # HINT: Remember that the time_posted column should be the TIMESTAMP data type!
-q2 = "SELECT * FROM Tweets WHERE retweets > 2"
-db_cur.execute(q2)
-more_than_2_rts = db_cur.fetchall()
-print(more_than_2_rts)
-
+cur.execute("CREATE TABLE IF NOT EXISTS Tweets(tweet_id INTEGER, author VARCHAR(128), time_posted TIMESTAMP, tweet_text VARCHAR(128), retweets INTEGER)")
 
 # 3 - Invoke the function you defined above to get a list that represents a bunch of tweets from the UMSI timeline. Save those tweets in a variable called umsi_tweets.
-q3 = "SELECT tweet_text from Tweets WHERE instr(tweet_text,'RT')"
-db_cur.execute(q3)
-get_tweet = db_cur.fetchall()
-first_rt = get_tweet[0][0]
-print(first_rt)
-
+umsi_tweets = get_tweets();
 
 # 4 - Use a for loop, the cursor you defined above to execute INSERT statements, that insert the data from each of the tweets in umsi_tweets into the correct columns in each row of the Tweets database table.
-
-db_conn.close()
-
+for tweet in umsi_tweets:
+    cur.execute('INSERT INTO Tweets(tweet_id, author, time_posted, tweet_text, retweets) VALUES(?, ?, ?, ?, ?)', (tweet, umsi_tweets[tweet][0], umsi_tweets[tweet][1], umsi_tweets[tweet][2], umsi_tweets[tweet][3]))
 
 #  5- Use the database connection to commit the changes to the database
-
+conn.commit()
 # You can check out whether it worked in the SQLite browser! (And with the tests.)
 
 ## [PART 3] - SQL statements
@@ -126,27 +87,18 @@ db_conn.close()
     # Mon Oct 09 15:45:45 +0000 2017 - RT @MikeRothCom: Beautiful morning at @UMich - It’s easy to forget to
     # take in the view while running from place to place @umichDLHS  @umich…
 # Include the blank line between each tweet.
-
-def get_twitter_users(s):
-	find_usernames = r"(@([A-Z|a-z|0-9_])*)"
-	users = re.findall(find_usernames, s)
-
-	usernames = set()
-	for tweet in users:
-		stripped_tweet = tweet[0].strip('@')
-		usernames.add(stripped_tweet)
-	return usernames
-
-
-print(get_twitter_users("@twitter_user_4, what did you think of the comment by @twitteruser5?"))
-print(get_twitter_users(first_rt))
-print(get_twitter_users("RT @4tvirtualcon: Proud to partner w @WashISD @OaklandSchools @UM_EdSchool @umsi to put on this free conference 4 educators!"))
-
+cur.execute('SELECT tweet_text, time_posted from Tweets')
+for item in cur:
+    print (item[1], '-', item[0], '\n')
 
 # Select the author of all of the tweets (the full rows/tuples of information) that have been retweeted MORE
 # than 2 times, and fetch them into the variable more_than_2_rts.
 # Print the results
-
+cur.execute('SELECT author from Tweets WHERE retweets>2')
+more_than_2_rts = []
+for item in cur:
+    more_than_2_rts.append(item)
+print (more_than_2_rts)
 
 
 if __name__ == "__main__":
