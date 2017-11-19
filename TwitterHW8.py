@@ -31,22 +31,16 @@ except:
 
 # Here, define a function called get_tweets that searches for all tweets referring to or by "umsi"
 # Your function must cache data it retrieves and rely on a cache file!
-def get_tweets():
-    if CACHE_DICTION == {}:
-        tweets = api.home_timeline()
-        for tweet in tweets:
-            words = tweet['text'].split(' ')
-            if 'umsi' in words or 'UMSI' in words:
-                CACHE_DICTION[tweet['id']] = [tweet['user']['screen_name'], tweet['created_at'], tweet['text'], tweet['retweet_count']]
-        umsi_tweets = api.user_timeline('umsi')
-        for tweet in umsi_tweets:
-            CACHE_DICTION[tweet['id']] = [tweet['user']['screen_name'], tweet['created_at'], tweet['text'], tweet['retweet_count']]
-        file = open(CACHE_FNAME, "w")
-        file.write(json.dumps(CACHE_DICTION))  # write cache dictionary to file
-        file.close()
-        return CACHE_DICTION
+def get_user_tweets(twitter_screenname):
+    if twitter_screenname in CACHE_DICTION:
+        return CACHE_DICTION[twitter_screenname]
     else:
-        return CACHE_DICTION
+        data = api.user_timeline(screen_name = twitter_screenname, count = 20)
+    try:
+        CACHE_DICTION[twitter_screenname] = data
+        pythonobject = json.dumps(CACHE_DICTION)
+        fw = open(CACHE_FNAME, 'w')
+
 
 
 ## [PART 2]
