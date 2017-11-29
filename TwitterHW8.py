@@ -14,7 +14,7 @@ access_token_secret = twitter_info.access_token_secret
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 
-# Set up library to grab stuff from twitter with your authentication, and return it in a JSON format
+# sSet up library to grab stuff from twitter with your authentication, and return it in a JSON format
 api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 
 # And we've provided the setup for your cache. But we haven't written any functions for you, so you have to be sure that any function that gets data from the internet relies on caching.
