@@ -44,12 +44,12 @@ def grab_headlines():
     # f.close()
 
     #Opening from Michigan Daily
-    r = requests.get('http://www.michigandaily.com/section/opinion')    #pulling data from the Michigan daily website
+    r = requests.get('http://www.michigandaily.com/section/opinion')    #requesting data from the Michigan daily website
     soup = BeautifulSoup(r.text, 'html.parser')
     most_read = []
     s = ""
 
-    for most in soup.find_all(class_ = 'view view-most-read view-id-most_read view-display-id-panel_pane_1 view-dom-id-99658157999dd0ac5aa62c2b284dd266'):
+    for most in soup.find_all(class_ = 'view view-most-read view-id-most_read view-display-id-panel_pane_1 view-dom-id-99658157999dd0ac5aa62c2b284dd266'): #find the class that is assigned for "Most read "
         s = most.text.strip()
         most_read = s.split("\n")
 
